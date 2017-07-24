@@ -1,0 +1,4 @@
+tensorflow (1.1.0)
+tensorflow-gpu (1.1.0)
+scipy (0.18.1)
+numpy (1.13.0)
