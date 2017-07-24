@@ -17,7 +17,7 @@ tf.app.flags.DEFINE_string('dataset', 'cifar10', "{cifar10, svhn}")
 
 tf.app.flags.DEFINE_string('log_dir', "/volume/home/david/training_log/vat_tf", "log_dir")
 tf.app.flags.DEFINE_integer('seed', 1, "initial random seed")
-tf.app.flags.DEFINE_integer('dataset_seed', 1, "dataset seed")
+tf.app.flags.DEFINE_integer('dataset_seed', 20, "dataset seed")
 
 tf.app.flags.DEFINE_bool('validation', False, "")
 

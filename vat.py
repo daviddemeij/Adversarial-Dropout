@@ -50,9 +50,10 @@ def generate_virtual_adversarial_perturbation(x, logit, is_training=True):
 
     return FLAGS.epsilon * get_normalized_vector(d)
 
-def generate_adversarial_dropout_mask(x, logit, dropout_mask, update_fraction=0.2):
-    """ Calculate the """
-    dropout_ones = tf.ones(tf.shape(dropout_mask))
+def generate_adversarial_dropout_mask(x, logit, original_dropout_mask, update_fraction=0.2):
+    """ Calculate the dropout mask for which the logit changes the most while not changing more then
+    a given fraction (update_fraction) of the mask. """
+    dropout_ones = tf.ones(tf.shape(original_dropout_mask))
     logit_without_dropout = forward(x, dropout_mask=dropout_ones)
     dist = tf.reduce_mean(tf.squared_difference(logit, logit_without_dropout), axis=1)
     jacobian = tf.gradients(dist, [dropout_ones])[0]
@@ -64,7 +65,7 @@ def generate_adversarial_dropout_mask(x, logit, dropout_mask, update_fraction=0.
         top_jacobian = tf.transpose(tf.greater_equal(tf.transpose(tf.abs(jacobian)), tf.transpose(minimum_value)))
         jacobian_below_zero = tf.greater_equal(jacobian, 0.0)
         zero_or_one = tf.where(jacobian_below_zero, tf.zeros_like(jacobian), tf.ones_like(jacobian))
-        dropout_mask_copy = tf.where(top_jacobian, zero_or_one, dropout_mask)
+        dropout_mask_copy = tf.where(top_jacobian, zero_or_one, original_dropout_mask)
     #fraction_change = (1.0 / 16384.0) * (tf.reduce_sum(tf.square(dropout_mask - dropout_mask_copy), axis=[1]))
     #dropout_mask_percentage = tf.reduce_sum(dropout_mask_copy, axis=1) / 16384.0
     return dropout_mask_copy
