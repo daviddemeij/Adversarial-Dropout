@@ -55,7 +55,7 @@ def build_training_graph(x, y, ul_x, lr, mom):
         if FLAGS.method == 'vad':
             print "VAD enabled"
             ul_logit, mask = vat.forward(ul_x, is_training=True, update_batch_stats=False, return_mask=True)
-            additional_loss = vat.vad_loss(ul_x, ul_logit, mask)
+            additional_loss = 0.2 * vat.vad_loss(ul_x, ul_logit, mask)
         elif FLAGS.method == 'vat':
             ul_logit = vat.forward(ul_x, is_training=True, update_batch_stats=False)
             vat_loss = vat.virtual_adversarial_loss(ul_x, ul_logit)
@@ -98,7 +98,6 @@ def build_eval_graph(x, y, ul_x):
 
 
 def main(_):
-    print(FLAGS.epsilon, FLAGS.top_bn)
     numpy.random.seed(seed=FLAGS.seed)
     tf.set_random_seed(numpy.random.randint(1234))
     with tf.Graph().as_default() as g:

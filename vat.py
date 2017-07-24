@@ -64,7 +64,7 @@ def generate_adversarial_dropout_mask(x, logit, original_dropout_mask, update_fr
         minimum_value = tf.reduce_min(highest_jacobian_values.values, axis=1)
         top_jacobian = tf.transpose(tf.greater_equal(tf.transpose(tf.abs(jacobian)), tf.transpose(minimum_value)))
         jacobian_below_zero = tf.greater_equal(jacobian, 0.0)
-        zero_or_one = tf.where(jacobian_below_zero, tf.zeros_like(jacobian), tf.ones_like(jacobian))
+        zero_or_one = tf.where(jacobian_below_zero, tf.ones_like(jacobian), tf.zeros_like(jacobian))
         dropout_mask_copy = tf.where(top_jacobian, zero_or_one, original_dropout_mask)
     #fraction_change = (1.0 / 16384.0) * (tf.reduce_sum(tf.square(dropout_mask - dropout_mask_copy), axis=[1]))
     #dropout_mask_percentage = tf.reduce_sum(dropout_mask_copy, axis=1) / 16384.0

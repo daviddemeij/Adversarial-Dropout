@@ -40,7 +40,7 @@ tf.app.flags.DEFINE_string('data_dir', '/volume/home/david/datasets/cifar10',
                            'where to store the dataset')
 tf.app.flags.DEFINE_integer('num_labeled_examples', 4000, "The number of labeled examples")
 tf.app.flags.DEFINE_integer('num_valid_examples', 1000, "The number of validation examples")
-tf.app.flags.DEFINE_integer('dataset_seed', 1, "dataset seed")
+
 
 # Process images of this size. Note that this differs from the original CIFAR
 # image size of 32 x 32. If one alters this number, then the entire model
