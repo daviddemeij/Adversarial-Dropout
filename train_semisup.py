@@ -17,7 +17,7 @@ tf.app.flags.DEFINE_string('dataset', 'cifar10', "{cifar10, svhn}")
 
 tf.app.flags.DEFINE_string('log_dir', "/volume/home/david/training_log/vat_tf", "log_dir")
 tf.app.flags.DEFINE_integer('seed', 1, "initial random seed")
-tf.app.flags.DEFINE_integer('dataset_seed2', 20, "dataset seed")
+tf.app.flags.DEFINE_integer('dataset_seed', 1, "dataset seed")
 
 tf.app.flags.DEFINE_bool('validation', False, "")
 
@@ -32,7 +32,7 @@ tf.app.flags.DEFINE_float('learning_rate', 0.001, "initial learning rate")
 tf.app.flags.DEFINE_float('mom1', 0.9, "initial momentum rate")
 tf.app.flags.DEFINE_float('mom2', 0.5, "momentum rate after epoch_decay_start")
 
-tf.app.flags.DEFINE_string('method', 'baseline', "{vad, vat, vatent, vatentnoise, baseline}")
+tf.app.flags.DEFINE_string('method', 'baseline', "{vad, vat, vatent, baseline}")
 print FLAGS.method, FLAGS.log_dir
 if FLAGS.dataset == 'cifar10':
     from cifar10 import inputs, unlabeled_inputs
@@ -106,23 +106,23 @@ def main(_):
             images, labels = inputs(batch_size=FLAGS.batch_size,
                                     train=True,
                                     validation=FLAGS.validation,
-                                    shuffle=True, dataset_seed=FLAGS.dataset_seed2)
+                                    shuffle=True, dataset_seed=FLAGS.dataset_seed)
             ul_images = unlabeled_inputs(batch_size=FLAGS.ul_batch_size,
                                          validation=FLAGS.validation,
-                                         shuffle=True, dataset_seed=FLAGS.dataset_seed2)
+                                         shuffle=True, dataset_seed=FLAGS.dataset_seed)
 
             images_eval_train, labels_eval_train = inputs(batch_size=FLAGS.eval_batch_size,
                                                           train=True,
                                                           validation=FLAGS.validation,
-                                                          shuffle=True, dataset_seed=FLAGS.dataset_seed2)
+                                                          shuffle=True, dataset_seed=FLAGS.dataset_seed)
             ul_images_eval_train = unlabeled_inputs(batch_size=FLAGS.eval_batch_size,
                                                     validation=FLAGS.validation,
-                                                    shuffle=True, dataset_seed=FLAGS.dataset_seed2)
+                                                    shuffle=True, dataset_seed=FLAGS.dataset_seed)
 
             images_eval_test, labels_eval_test = inputs(batch_size=FLAGS.eval_batch_size,
                                                         train=False,
                                                         validation=FLAGS.validation,
-                                                        shuffle=True, dataset_seed=FLAGS.dataset_seed2)
+                                                        shuffle=True, dataset_seed=FLAGS.dataset_seed)
 
         with tf.device(FLAGS.device):
             lr = tf.placeholder(tf.float32, shape=[], name="learning_rate")

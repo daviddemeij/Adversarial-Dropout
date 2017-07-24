@@ -1,6 +1,4 @@
 import tensorflow as tf
-import numpy
-import sys, os
 
 
 FLAGS = tf.app.flags.FLAGS

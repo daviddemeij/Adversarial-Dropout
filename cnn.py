@@ -1,6 +1,5 @@
 import tensorflow as tf
 import numpy
-import sys, os
 import layers as L
 
 FLAGS = tf.app.flags.FLAGS
@@ -34,6 +33,8 @@ def logit(x, is_training=True, update_batch_stats=True, stochastic=True, seed=12
     h = L.lrelu(L.bn(h, 256, is_training=is_training, update_batch_stats=update_batch_stats, name='b6'), FLAGS.lrelu_a)
 
     h = L.max_pool(h, ksize=2, stride=2)
+
+    # Making it possible to change or return a dropout mask
     if stochastic:
         if dropout_mask == None:
             dropout_mask = tf.cast(
