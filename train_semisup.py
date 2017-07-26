@@ -15,14 +15,14 @@ tf.app.flags.DEFINE_string('device', '/gpu:0', "device")
 
 tf.app.flags.DEFINE_string('dataset', 'cifar10', "{cifar10, svhn}")
 
-tf.app.flags.DEFINE_string('log_dir', "/volume/home/david/training_log/vat_tf", "log_dir")
+tf.app.flags.DEFINE_string('log_dir', "/home/david/training_log/vat_tf", "log_dir")
 tf.app.flags.DEFINE_integer('seed', 1, "initial random seed")
-tf.app.flags.DEFINE_integer('dataset_seed', 20, "dataset seed")
+tf.app.flags.DEFINE_integer('dataset_seed', 1, "dataset seed")
 
 tf.app.flags.DEFINE_bool('validation', False, "")
 
-tf.app.flags.DEFINE_integer('batch_size', 32, "the number of examples in a batch")
-tf.app.flags.DEFINE_integer('ul_batch_size', 32, "the number of unlabeled examples in a batch")
+tf.app.flags.DEFINE_integer('batch_size', 16, "the number of examples in a batch")
+tf.app.flags.DEFINE_integer('ul_batch_size', 16, "the number of unlabeled examples in a batch")
 tf.app.flags.DEFINE_integer('eval_batch_size', 200, "the number of eval examples in a batch")
 tf.app.flags.DEFINE_integer('eval_freq', 10, "")
 tf.app.flags.DEFINE_integer('num_epochs', 400, "the number of epochs for training")
@@ -32,7 +32,7 @@ tf.app.flags.DEFINE_float('learning_rate', 0.001, "initial learning rate")
 tf.app.flags.DEFINE_float('mom1', 0.9, "initial momentum rate")
 tf.app.flags.DEFINE_float('mom2', 0.5, "momentum rate after epoch_decay_start")
 
-tf.app.flags.DEFINE_string('method', 'baseline', "{vad, vat, vatent, baseline}")
+tf.app.flags.DEFINE_string('method', 'vad', "{vad, vat, vatent, baseline}")
 print FLAGS.method, FLAGS.log_dir
 if FLAGS.dataset == 'cifar10':
     from cifar10 import inputs, unlabeled_inputs
@@ -54,8 +54,11 @@ def build_training_graph(x, y, ul_x, lr, mom):
     with tf.variable_scope(tf.get_variable_scope(), reuse=True):
         if FLAGS.method == 'vad':
             print "VAD enabled"
-            ul_logit, mask = vat.forward(ul_x, is_training=True, update_batch_stats=False, return_mask=True)
-            additional_loss = 0.2 * vat.vad_loss(ul_x, ul_logit, mask)
+            ul_logit, mask, h_before_dropout = vat.forward(ul_x, is_training=True, update_batch_stats=False, return_mask=True)
+            print ul_logit.get_shape()
+            print mask.get_shape()
+            print h_before_dropout.get_shape()
+            additional_loss = 0.2 * vat.vad_loss(ul_x, ul_logit, mask, h_before_dropout)
         elif FLAGS.method == 'vat':
             ul_logit = vat.forward(ul_x, is_training=True, update_batch_stats=False)
             vat_loss = vat.virtual_adversarial_loss(ul_x, ul_logit)

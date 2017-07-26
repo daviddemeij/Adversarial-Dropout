@@ -29,42 +29,41 @@ def logit_moons(x, is_training=True, update_batch_stats=True, stochastic=True, s
     return h
 
 
-def logit(x, is_training=True, update_batch_stats=True, stochastic=True, seed=1234, dropout_mask=None, return_mask=False):
-    h = x
-
+def logit(h, is_training=True, update_batch_stats=True, stochastic=True, seed=1234, dropout_mask=None, return_mask=False, h_before_dropout=None):
     rng = np.random.RandomState(seed)
+    if h_before_dropout is None:
+        h = L.conv(h, ksize=3, stride=1, f_in=3, f_out=128, seed=rng.randint(123456), name='c1')
+        h = L.lrelu(L.bn(h, 128, is_training=is_training, update_batch_stats=update_batch_stats, name='b1'), FLAGS.lrelu_a)
+        h = L.conv(h, ksize=3, stride=1, f_in=128, f_out=128, seed=rng.randint(123456), name='c2')
+        h = L.lrelu(L.bn(h, 128, is_training=is_training, update_batch_stats=update_batch_stats, name='b2'), FLAGS.lrelu_a)
+        h = L.conv(h, ksize=3, stride=1, f_in=128, f_out=128, seed=rng.randint(123456), name='c3')
+        h = L.lrelu(L.bn(h, 128, is_training=is_training, update_batch_stats=update_batch_stats, name='b3'), FLAGS.lrelu_a)
 
-    h = L.conv(h, ksize=3, stride=1, f_in=3, f_out=128, seed=rng.randint(123456), name='c1')
-    h = L.lrelu(L.bn(h, 128, is_training=is_training, update_batch_stats=update_batch_stats, name='b1'), FLAGS.lrelu_a)
-    h = L.conv(h, ksize=3, stride=1, f_in=128, f_out=128, seed=rng.randint(123456), name='c2')
-    h = L.lrelu(L.bn(h, 128, is_training=is_training, update_batch_stats=update_batch_stats, name='b2'), FLAGS.lrelu_a)
-    h = L.conv(h, ksize=3, stride=1, f_in=128, f_out=128, seed=rng.randint(123456), name='c3')
-    h = L.lrelu(L.bn(h, 128, is_training=is_training, update_batch_stats=update_batch_stats, name='b3'), FLAGS.lrelu_a)
+        h = L.max_pool(h, ksize=2, stride=2)
+        if stochastic:
+            h = tf.nn.dropout(h, keep_prob=FLAGS.keep_prob_hidden)
 
-    h = L.max_pool(h, ksize=2, stride=2)
-    if stochastic:
-        h = tf.nn.dropout(h, keep_prob=FLAGS.keep_prob_hidden)
+        h = L.conv(h, ksize=3, stride=1, f_in=128, f_out=256, seed=rng.randint(123456), name='c4')
+        h = L.lrelu(L.bn(h, 256, is_training=is_training, update_batch_stats=update_batch_stats, name='b4'), FLAGS.lrelu_a)
+        h = L.conv(h, ksize=3, stride=1, f_in=256, f_out=256, seed=rng.randint(123456), name='c5')
+        h = L.lrelu(L.bn(h, 256, is_training=is_training, update_batch_stats=update_batch_stats, name='b5'), FLAGS.lrelu_a)
+        h = L.conv(h, ksize=3, stride=1, f_in=256, f_out=256, seed=rng.randint(123456), name='c6')
+        h = L.lrelu(L.bn(h, 256, is_training=is_training, update_batch_stats=update_batch_stats, name='b6'), FLAGS.lrelu_a)
 
-    h = L.conv(h, ksize=3, stride=1, f_in=128, f_out=256, seed=rng.randint(123456), name='c4')
-    h = L.lrelu(L.bn(h, 256, is_training=is_training, update_batch_stats=update_batch_stats, name='b4'), FLAGS.lrelu_a)
-    h = L.conv(h, ksize=3, stride=1, f_in=256, f_out=256, seed=rng.randint(123456), name='c5')
-    h = L.lrelu(L.bn(h, 256, is_training=is_training, update_batch_stats=update_batch_stats, name='b5'), FLAGS.lrelu_a)
-    h = L.conv(h, ksize=3, stride=1, f_in=256, f_out=256, seed=rng.randint(123456), name='c6')
-    h = L.lrelu(L.bn(h, 256, is_training=is_training, update_batch_stats=update_batch_stats, name='b6'), FLAGS.lrelu_a)
-
-    h = L.max_pool(h, ksize=2, stride=2)
+        h_before_dropout = L.max_pool(h, ksize=2, stride=2)
 
     # Making it possible to change or return a dropout mask
     if stochastic:
-        if dropout_mask == None:
+        if dropout_mask is None:
             dropout_mask = tf.cast(
-                tf.greater_equal(tf.random_uniform(tf.shape(h), 0, 1, seed=rng.randint(123456)), 1.0 - FLAGS.keep_prob_hidden),
+                tf.greater_equal(tf.random_uniform(tf.shape(h_before_dropout), 0, 1, seed=rng.randint(123456)), 1.0 - FLAGS.keep_prob_hidden),
                 tf.float32)
         else:
-            dropout_mask = tf.reshape(dropout_mask, tf.shape(h))
-        h = tf.multiply(h, dropout_mask)
+            dropout_mask = tf.reshape(dropout_mask, tf.shape(h_before_dropout))
+        h = tf.multiply(h_before_dropout, dropout_mask)
         h = (1.0 / FLAGS.keep_prob_hidden) * h
-
+    else:
+        h = h_before_dropout
     h = L.conv(h, ksize=3, stride=1, f_in=256, f_out=512, seed=rng.randint(123456), padding="VALID", name='c7')
     h = L.lrelu(L.bn(h, 512, is_training=is_training, update_batch_stats=update_batch_stats, name='b7'), FLAGS.lrelu_a)
     h = L.conv(h, ksize=1, stride=1, f_in=512, f_out=256, seed=rng.randint(123456), name='c8')
@@ -79,6 +78,6 @@ def logit(x, is_training=True, update_batch_stats=True, stochastic=True, seed=12
         h = L.bn(h, 10, is_training=is_training,
                  update_batch_stats=update_batch_stats, name='bfc')
     if return_mask:
-        return h, tf.reshape(dropout_mask, [-1, 8*8*256])
+        return h, tf.reshape(dropout_mask, [-1, 8*8*256]), h_before_dropout
     else:
         return h
